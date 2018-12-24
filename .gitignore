@@ -38,6 +38,7 @@ obj/*
 *.tmp
 
 build/*
+include/*
 
 msg.tmp
 

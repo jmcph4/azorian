@@ -28,7 +28,9 @@ debug:
 
 .PHONY: tests
 tests:
-	cp $(BUILD_DIR)/lib$(PROJ_NAME).a $(LIB_DIR)/lib$(PROJ_NAME).a; cd $(TEST_DIR); make
+	cd $(TEST_DIR);\
+	make;\
+	cd ..;
 
 .PHONY: docs
 docs:
