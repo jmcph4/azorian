@@ -1,0 +1,6 @@
+language: c
+install:
+    - git clone https://github.com/throwtheswitch/unity.git && cp unity/src include/unity -r
+script:
+    - bash run_tests.sh
+
