@@ -1,9 +1,17 @@
+/**
+ * @file az_uvarint.c
+ *
+ * Contains implementations of API functions in the form of function
+ * definitions.
+ *
+ * */
 #include <stdlib.h>
 #include <stdint.h>
 
 #include "az_status.h"
 #include "az_uvarint.h"
 
+/* private helper function to compute floor(log2(n)) */
 uint64_t _u64_log2(uint64_t n)
 {
     uint64_t a = 0;
@@ -26,14 +34,18 @@ uint64_t _u64_log2(uint64_t n)
  * unsigned multiformat variable integer.
  *
  * @param num
+ *          the native unsigned 64-bit integer to be encoded
  * @param uvarint
- * @return result type indicating success or failure
+ *          reference to the <code>az_uvarint_t</code> type to store the
+ *          encoded representation
+ * @return <code>az_status_t</code> result type indicating success or failure
  * @throw AZ_ERR_ILLEGAL_PARAM
- *          if `uvarint == NULL`
- * @throw AZ_ERR_vARINT_TOO_BIG
- *          if the <code>num</code> is too large to fit in
+ *          if <code>uvarint == NULL</code>
+ * @throw AZ_ERR_VARINT_TOO_BIG
+ *          if <code>num</code> is too large to fit in
  *          <code>AZ_UVARINT_MAX_LEN</code>
- * @see az_uvarint_decode 
+ * @see <code>az_status_t</code>
+ * @see <code>az_uvarint_decode</code>
  *
  * */
 az_status_t az_uvarint_encode(uint64_t num, az_uvarint_t* uvarint)
@@ -87,9 +99,15 @@ az_status_t az_uvarint_encode(uint64_t num, az_uvarint_t* uvarint)
  * into a native unsigned 64-bit integer.
  *
  * @param uvarint
+ *          the <code>az_uvarint_t</code> type to be decoded
  * @param num
- * @return result type indicating success or failure
- * @see az_uvarint_encode
+ *          reference to a native unsigned 64-bit integer to store the decoded
+ *          contents
+ * @return <code>az_status_t</code> result type indicating success or failure
+ * @throw AZ_ERR_ILLEGAL_PARAM
+ *          if <code>num == NULL</code>
+ * @see <code>az_status_t</code>
+ * @see <code>az_uvarint_encode</code>
  *
  * */
 az_status_t az_uvarint_decode(az_uvarint_t uvarint, uint64_t* num)

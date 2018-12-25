@@ -1,6 +1,16 @@
+/**
+ * @file az_status.h
+ *
+ * Contains definitions for the <code>az_status_t</code> type.
+ *
+ * */
 #ifndef AZ_STATUS_H_
 #define AZ_STATUS_H_
 
+/**
+ * Describes the result of an API call in Azorian.
+ *
+ * */
 typedef enum
 {
     AZ_STATUS_OK = 0,
