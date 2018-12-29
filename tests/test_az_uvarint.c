@@ -9,7 +9,7 @@
 
 void test_az_uvarint_encode_specsample1(void)
 {
-    uint64_t num = 1;
+    uintmax_t num = 1;
     az_uvarint_t uvarint;
 
     az_status_t res = az_uvarint_encode(num, &uvarint);
@@ -21,7 +21,7 @@ void test_az_uvarint_encode_specsample1(void)
 
 void test_az_uvarint_encode_specsample2(void)
 {
-    uint64_t num = 127;
+    uintmax_t num = 127;
     az_uvarint_t uvarint;
 
     az_status_t res = az_uvarint_encode(num, &uvarint);
@@ -33,7 +33,7 @@ void test_az_uvarint_encode_specsample2(void)
 
 void test_az_uvarint_encode_specsample3(void)
 {
-    uint64_t num = 128;
+    uintmax_t num = 128;
     az_uvarint_t uvarint;
 
     az_status_t res = az_uvarint_encode(num, &uvarint);
@@ -46,7 +46,7 @@ void test_az_uvarint_encode_specsample3(void)
 
 void test_az_uvarint_encode_specsample4(void)
 {
-    uint64_t num = 255;
+    uintmax_t num = 255;
     az_uvarint_t uvarint;
 
     az_status_t res = az_uvarint_encode(num, &uvarint);
@@ -59,7 +59,7 @@ void test_az_uvarint_encode_specsample4(void)
 
 void test_az_uvarint_encode_specsample5(void)
 {
-    uint64_t num = 300;
+    uintmax_t num = 300;
     az_uvarint_t uvarint;
 
     az_status_t res = az_uvarint_encode(num, &uvarint);
@@ -72,7 +72,7 @@ void test_az_uvarint_encode_specsample5(void)
 
 void test_az_uvarint_encode_specsample6(void)
 {
-    uint64_t num = 16384;
+    uintmax_t num = 16384;
     az_uvarint_t uvarint;
 
     az_status_t res = az_uvarint_encode(num, &uvarint);
@@ -88,10 +88,10 @@ void test_az_uvarint_decode_specsample1(void)
 {
     az_uvarint_t uvarint;
     uvarint.len = 1;
-    uvarint.bytes = calloc(uvarint.len, sizeof(uint64_t));
+    uvarint.bytes = calloc(uvarint.len, sizeof(uintmax_t));
     uvarint.bytes[0] = 1;
 
-    uint64_t num = 0;
+    uintmax_t num = 0;
     az_status_t res = az_uvarint_decode(uvarint, &num);
 
     TEST_ASSERT_EQUAL_INT(AZ_STATUS_OK, res);
@@ -102,10 +102,10 @@ void test_az_uvarint_decode_specsample2(void)
 {
     az_uvarint_t uvarint;
     uvarint.len = 1;
-    uvarint.bytes = calloc(uvarint.len, sizeof(uint64_t));
+    uvarint.bytes = calloc(uvarint.len, sizeof(uintmax_t));
     uvarint.bytes[0] = 127;
 
-    uint64_t num = 0;
+    uintmax_t num = 0;
     az_status_t res = az_uvarint_decode(uvarint, &num);
 
     TEST_ASSERT_EQUAL_INT(AZ_STATUS_OK, res);
@@ -116,11 +116,11 @@ void test_az_uvarint_decode_specsample3(void)
 {
     az_uvarint_t uvarint;
     uvarint.len = 2;
-    uvarint.bytes = calloc(uvarint.len, sizeof(uint64_t));
+    uvarint.bytes = calloc(uvarint.len, sizeof(uintmax_t));
     uvarint.bytes[0] = 128;
     uvarint.bytes[1] = 1;
 
-    uint64_t num = 0;
+    uintmax_t num = 0;
     az_status_t res = az_uvarint_decode(uvarint, &num);
 
     TEST_ASSERT_EQUAL_INT(AZ_STATUS_OK, res);
@@ -131,11 +131,11 @@ void test_az_uvarint_decode_specsample4(void)
 {
     az_uvarint_t uvarint;
     uvarint.len = 2;
-    uvarint.bytes = calloc(uvarint.len, sizeof(uint64_t));
+    uvarint.bytes = calloc(uvarint.len, sizeof(uintmax_t));
     uvarint.bytes[0] = 255;
     uvarint.bytes[1] = 1;
 
-    uint64_t num = 0;
+    uintmax_t num = 0;
     az_status_t res = az_uvarint_decode(uvarint, &num);
 
     TEST_ASSERT_EQUAL_INT(AZ_STATUS_OK, res);
@@ -146,11 +146,11 @@ void test_az_uvarint_decode_specsample5(void)
 {
     az_uvarint_t uvarint;
     uvarint.len = 2;
-    uvarint.bytes = calloc(uvarint.len, sizeof(uint64_t));
+    uvarint.bytes = calloc(uvarint.len, sizeof(uintmax_t));
     uvarint.bytes[0] = 172;
     uvarint.bytes[1] = 2;
 
-    uint64_t num = 0;
+    uintmax_t num = 0;
     az_status_t res = az_uvarint_decode(uvarint, &num);
 
     TEST_ASSERT_EQUAL_INT(AZ_STATUS_OK, res);
@@ -161,12 +161,12 @@ void test_az_uvarint_decode_specsample6(void)
 {
     az_uvarint_t uvarint;
     uvarint.len = 3;
-    uvarint.bytes = calloc(uvarint.len, sizeof(uint64_t));
+    uvarint.bytes = calloc(uvarint.len, sizeof(uintmax_t));
     uvarint.bytes[0] = 128;
     uvarint.bytes[1] = 128;
     uvarint.bytes[2] = 1;
 
-    uint64_t num = 0;
+    uintmax_t num = 0;
     az_status_t res = az_uvarint_decode(uvarint, &num);
 
     TEST_ASSERT_EQUAL_INT(AZ_STATUS_OK, res);

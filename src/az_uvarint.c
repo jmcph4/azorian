@@ -12,10 +12,10 @@
 #include "az_uvarint.h"
 
 /* private helper function to compute floor(log2(n)) */
-uint64_t _u64_log2(uint64_t n)
+uintmax_t _u64_log2(uintmax_t n)
 {
-    uint64_t a = 0;
-    uint64_t b = 0;
+    uintmax_t a = 0;
+    uintmax_t b = 0;
 
     b = (n > 0xffff) << 4;
 	n >>= b;
@@ -48,7 +48,7 @@ uint64_t _u64_log2(uint64_t n)
  * @see <code>az_uvarint_decode</code>
  *
  * */
-az_status_t az_uvarint_encode(uint64_t num, az_uvarint_t* uvarint)
+az_status_t az_uvarint_encode(uintmax_t num, az_uvarint_t* uvarint)
 {
     if(uvarint == NULL)
     {
@@ -77,7 +77,7 @@ az_status_t az_uvarint_encode(uint64_t num, az_uvarint_t* uvarint)
         return AZ_STATUS_OK;
     }
 
-    uint64_t n = num;
+    uintmax_t n = num;
 
     for(unsigned int i=0;i<num_bytes;i++)
     {
@@ -110,15 +110,15 @@ az_status_t az_uvarint_encode(uint64_t num, az_uvarint_t* uvarint)
  * @see <code>az_uvarint_encode</code>
  *
  * */
-az_status_t az_uvarint_decode(az_uvarint_t uvarint, uint64_t* num)
+az_status_t az_uvarint_decode(az_uvarint_t uvarint, uintmax_t* num)
 {
     if(num == NULL)
     {
         return AZ_ERR_ILLEGAL_PARAM;
     }
 
-    uint64_t k = 0;
-    uint64_t n = 0;
+    uintmax_t k = 0;
+    uintmax_t n = 0;
 
     for(unsigned int i=0;i<uvarint.len;i++)
     {
