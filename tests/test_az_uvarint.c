@@ -173,6 +173,46 @@ void test_az_uvarint_decode_specsample6(void)
     TEST_ASSERT_EQUAL_UINT64(16384, num);
 }
 
+void test_az_uvarint_equal_normal_equal(void)
+{
+    uint64_t num_a = 33;
+    uint64_t num_b = 33;
+    az_uvarint_t uvarint_a;
+    az_uvarint_t uvarint_b;
+    
+    az_status_t res_encode_a = az_uvarint_encode(num_a, &uvarint_a);
+    az_status_t res_encode_b = az_uvarint_encode(num_b, &uvarint_b);
+   
+    bool equal = false;
+    az_status_t res_equality = az_uvarint_equal(uvarint_a, uvarint_b, &equal);
+
+    TEST_ASSERT_EQUAL_UINT64(num_a, num_b);
+    TEST_ASSERT_EQUAL_INT(AZ_STATUS_OK, res_encode_a);
+    TEST_ASSERT_EQUAL_INT(AZ_STATUS_OK, res_encode_b);
+    TEST_ASSERT_EQUAL_INT(AZ_STATUS_OK, res_equality);
+    TEST_ASSERT_TRUE(equal);
+}
+
+void test_az_uvarint_equal_normal_unequal(void)
+{
+    uint64_t num_a = 33;
+    uint64_t num_b = 12;
+    az_uvarint_t uvarint_a;
+    az_uvarint_t uvarint_b;
+    
+    az_status_t res_encode_a = az_uvarint_encode(num_a, &uvarint_a);
+    az_status_t res_encode_b = az_uvarint_encode(num_b, &uvarint_b);
+   
+    bool equal = true;
+    az_status_t res_equality = az_uvarint_equal(uvarint_a, uvarint_b, &equal);
+
+    TEST_ASSERT_FALSE(num_a == num_b);
+    TEST_ASSERT_EQUAL_INT(AZ_STATUS_OK, res_encode_a);
+    TEST_ASSERT_EQUAL_INT(AZ_STATUS_OK, res_encode_b);
+    TEST_ASSERT_EQUAL_INT(AZ_STATUS_OK, res_equality);
+    TEST_ASSERT_FALSE(equal);
+}
+
 int main(void)
 {
     UNITY_BEGIN();
@@ -193,6 +233,10 @@ int main(void)
     RUN_TEST(test_az_uvarint_decode_specsample5);
     RUN_TEST(test_az_uvarint_decode_specsample6);
    
+    /* az_uvarint_equal */
+    RUN_TEST(test_az_uvarint_equal_normal_equal);
+    RUN_TEST(test_az_uvarint_equal_normal_unequal);
+
     return UNITY_END();
 }
 

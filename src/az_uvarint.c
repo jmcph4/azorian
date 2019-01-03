@@ -6,6 +6,7 @@
  *
  * */
 #include <stdlib.h>
+#include <stdbool.h>
 #include <stdint.h>
 
 #include "az_status.h"
@@ -131,6 +132,52 @@ az_status_t az_uvarint_decode(az_uvarint_t uvarint, uintmax_t* num)
             break;
         }
     }
+
+    return AZ_STATUS_OK;
+}
+
+/**
+ * Determines whether two unsigned variable integers, <code>a</code> and
+ * <code>b</code>, are equal.
+ *
+ * Note that, due to the mathematical properties of equality, the ordering of
+ * <code>a</code> and <code>b</code> is unimportant (i.e. commutativity).
+ *
+ * @param a
+ *          first unsigned variable integer to be checked
+ * @param b
+ *          second unsigned variable integer to be checked
+ * @param equal
+ *          reference to a <code>bool</code> type, containing the result of the
+ *          equality test
+ * @return <code>az_status_t</code> result type indicating success or failure
+ * @throw AZ_ERR_ILLEGAL_PARAM
+ *          if <code>equal == NULL</code>
+ *
+ * */
+az_status_t az_uvarint_equal(az_uvarint_t a, az_uvarint_t b, bool* equal)
+{
+    if(equal == NULL) /* null guard */
+    {
+        return AZ_ERR_ILLEGAL_PARAM;
+    }
+
+    if(a.len != b.len)
+    {
+        *equal = false;
+        return AZ_STATUS_OK;
+    }
+
+    for(uint8_t i=0;i<a.len;i++)
+    {
+        if(a.bytes[i] != b.bytes[i])
+        {
+            *equal = false;
+            return AZ_STATUS_OK;
+        }
+    }
+
+    *equal = true;
 
     return AZ_STATUS_OK;
 }
