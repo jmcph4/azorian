@@ -14,7 +14,7 @@ az_multicodec_t make_mc(uintmax_t x)
 
     if(res != AZ_STATUS_OK)
     {
-        return (az_multicodec_t){0};
+        return (az_multicodec_t){0, 0};
     }
     
     return mc;
