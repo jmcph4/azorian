@@ -6,5 +6,7 @@
 #define AZORIAN_VERSION_MINOR 3
 #define AZORIAN_VERSION_PATCH 0
 
+typedef int __dummy_type_for_ios_compliance;
+
 #endif /* AZORIAN_H_ */
 
