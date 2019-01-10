@@ -1,6 +1,8 @@
 /**
  * @file az_multicodec.h
  *
+ * Contains definitions of each multicodec prefix, as per the specification.
+ *
  * */
 #ifndef AZ_MULTICODEC_H_
 #define AZ_MULTICODEC_H_
