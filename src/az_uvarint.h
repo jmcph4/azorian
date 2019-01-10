@@ -12,6 +12,8 @@
 #include <stdbool.h>
 #include <stdint.h>
 
+#include "az_status.h"
+
 #define BITS_PER_BYTE 8
 #define AZ_UVARINT_MAX_LEN 9 /* as per spec */
 
