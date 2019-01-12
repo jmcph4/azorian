@@ -29,7 +29,7 @@ debug:
 .PHONY: tests
 tests:
 	cd $(TEST_DIR);\
-	make;\
+	make all;\
 	cd ..;
 
 .PHONY: docs
