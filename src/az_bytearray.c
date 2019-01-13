@@ -62,3 +62,32 @@ az_status_t az_bytearray_free(az_bytearray_t* bytearray)
     return AZ_STATUS_OK;
 }
 
+/* Equality */
+az_status_t az_bytearray_equal(az_bytearray_t a, az_bytearray_t b, bool* equal)
+{
+    if(equal == NULL) /* null guard */
+    {
+        return AZ_ERR_ILLEGAL_PARAM;
+    }
+
+    *equal = true;
+
+    /* compare lengths */
+    if(a.len != b.len)
+    {
+        *equal = false;
+    }
+
+    /* compare bytes */
+    for(size_t i=0;i<a.len;i++)
+    {
+        if(a.data[i] != b.data[i])
+        {
+            *equal = false;
+            break;
+        }
+    }
+
+    return AZ_STATUS_OK;
+}
+
