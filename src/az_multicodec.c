@@ -10,7 +10,7 @@ az_multicodec_t make_mc(uintmax_t x)
 {
     az_multicodec_t mc;
 
-    az_status_t res = az_uvarint_encode(x, &mc);
+    az_status_t res = az_uvarint_init_from_int(x, &mc);
 
     if(res != AZ_STATUS_OK)
     {
