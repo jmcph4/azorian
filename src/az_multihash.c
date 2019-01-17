@@ -46,7 +46,7 @@ az_status_t az_multihash_encode(az_multicodec_t hash_type,
     multihash->hash_type = hash_type;
 
     /* encode native integer type to unsigned varint */
-    az_status_t res = az_uvarint_encode(digest_size, &multihash->digest_size);
+    az_status_t res = az_uvarint_init_from_int(digest_size, &multihash->digest_size);
 
     if(res != AZ_STATUS_OK)
     {
@@ -103,7 +103,8 @@ az_status_t az_multihash_decode(az_multihash_t multihash,
     *hash_type = multihash.hash_type;
    
     /* decode digest size from unsigned varint into native integer */ 
-    az_status_t res = az_uvarint_decode(multihash.digest_size, digest_size);
+    az_status_t res = az_uvarint_decode_to_int(multihash.digest_size,
+            digest_size);
 
     if(res != AZ_STATUS_OK)
     {
