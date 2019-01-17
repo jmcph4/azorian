@@ -8,8 +8,10 @@
 #include <stdlib.h>
 #include <stdbool.h>
 #include <stdint.h>
+#include <string.h>
 
 #include "az_status.h"
+#include "az_bytearray.h"
 #include "az_uvarint.h"
 
 /* private helper function to compute floor(log2(n)) */
@@ -31,27 +33,26 @@ uintmax_t _u64_log2(uintmax_t n)
 }
 
 /**
- * Converts <code>num</code> from a native unsigned 64-bit integer into an
- * unsigned multiformat variable integer.
+ * Initialises <code>uvarint</code> from native integer <code>num</code>.
  *
  * @param num
- *          the native unsigned 64-bit integer to be encoded
+ *          native integer to use for initialisation
  * @param uvarint
- *          reference to the <code>az_uvarint_t</code> type to store the
- *          encoded representation
- * @return <code>az_status_t</code> result type indicating success or failure
+ *          a pointer to a <code>az_uvarint_t</code> type to be initialised
+ * @return a <code>az_status_t</code> type indicating result of operation
  * @throw AZ_ERR_ILLEGAL_PARAM
  *          if <code>uvarint == NULL</code>
  * @throw AZ_ERR_VARINT_TOO_BIG
- *          if <code>num</code> is too large to fit in
- *          <code>AZ_UVARINT_MAX_LEN</code>
- * @see <code>az_status_t</code>
- * @see <code>az_uvarint_decode</code>
+ *          if the number of bytes required to represent <code>num</code> as an
+ *          unsigned variable integer exceeds <code>AZ_UVARINT_MAX_LEN</code>
+ * @throw AZ_ERR_ALLOC_FAILURE
+ *          if memory allocation fails
+ * @see <code>az_uvarint_init_free</code>
  *
  * */
-az_status_t az_uvarint_encode(uintmax_t num, az_uvarint_t* uvarint)
+az_status_t az_uvarint_init_from_int(uintmax_t num, az_uvarint_t* uvarint)
 {
-    if(uvarint == NULL)
+    if(uvarint == NULL) /* null guard */
     {
         return AZ_ERR_ILLEGAL_PARAM;
     }
@@ -63,31 +64,163 @@ az_status_t az_uvarint_encode(uintmax_t num, az_uvarint_t* uvarint)
         return AZ_ERR_VARINT_TOO_BIG;
     }
 
-    /* set up our az_uvarint_t type */
-    uvarint->len = num_bytes;
-    uvarint->bytes = calloc(num_bytes, sizeof(uint8_t));
+    /* setup uvarint type */
+    uvarint->bytes = calloc(1, sizeof(az_bytearray_t));
 
     if(uvarint->bytes == NULL) /* allocation check */
     {
         return AZ_ERR_ALLOC_FAILURE;
     } 
 
-    if(num <= 127) /* base case */
+    uint8_t* data = calloc(num_bytes, sizeof(uint8_t));
+   
+    if(data == NULL) /* allocation check */
     {
-        uvarint->bytes[0] = num;
-        return AZ_STATUS_OK;
+        return AZ_ERR_ALLOC_FAILURE;
     }
 
-    uintmax_t n = num;
-
-    for(unsigned int i=0;i<num_bytes;i++)
+    if(num <= 127) /* base case */
     {
-        uvarint->bytes[i] = n | 0x80;        
-        n >>= 7;
+        data[0] = num;
+    }
+    else
+    {
+        uintmax_t n = num;
 
-        if(i + 1 == num_bytes)
+        for(unsigned int i=0;i<num_bytes;i++)
         {
-            uvarint->bytes[i] &= 0x7f;
+            data[i] = n | 0x80;        
+            n >>= 7;
+
+            if(i + 1 == num_bytes)
+            {
+                data[i] &= 0x7f;
+                break;
+            }
+        }
+    }
+
+    /* initialise underlying bytearray type */
+    az_status_t res = az_bytearray_init(num_bytes, data, uvarint->bytes);
+
+    if(res != AZ_STATUS_OK)
+    {
+        return res;
+    }
+    
+    free(data);
+
+    uvarint->num = num;
+    
+    return AZ_STATUS_OK;
+}
+
+
+az_status_t az_uvarint_free(az_uvarint_t uvarint)
+{
+    az_status_t res = AZ_STATUS_OK;
+
+    if(uvarint.bytes == NULL)
+    {
+        res = az_bytearray_free(uvarint.bytes);
+
+        if(res != AZ_STATUS_OK)
+        {
+            return res;
+        }
+    }
+
+    uvarint.num = 0;
+    uvarint.bytes = NULL;
+
+    return AZ_STATUS_OK;
+}
+
+az_status_t az_uvarint_encode(az_uvarint_t uvarint, az_bytearray_t** bytearray)
+{
+    if(bytearray == NULL) /* null guard */
+    {
+        return AZ_ERR_ILLEGAL_PARAM;
+    }
+
+    /* allocate memory for caller's copy of bytes */
+    *bytearray = calloc(1, sizeof(az_bytearray_t));
+
+    if(*bytearray == NULL) /* allocation check */
+    {
+        return AZ_ERR_ALLOC_FAILURE;
+    }
+
+    az_status_t res = az_bytearray_init(uvarint.bytes->len, uvarint.bytes->data,
+            *bytearray);
+
+    if(res != AZ_STATUS_OK)
+    {
+        return res;
+    }
+
+    return AZ_STATUS_OK;
+}
+
+/**
+ * Converts arbitrary binary data (<code>bytearray</code>) to an unsigned
+ * variasble integer (<code>uvarint</code>).
+ *
+ * @param bytearray
+ *          a <code>az_bytearray_t/code> type containing the binary data
+ * @param uvarint
+ *          a pointer to a <code>az_uvarint_t</code> to be initiated
+ * @return a <code>az_status_t</code> type indicating result of operation
+ * @throw AZ_ERR_ILLEGAL_PARAM
+ *          if <code>uvarint == NULL</code>
+ * @throw AZ_ERR_ALLOC_FAILURE
+ *          if memory allocation fails
+ * @see <code>az_uvarint_encode</code>
+ * @see <code>az_uvarint_from_int</code>
+ *
+ * */
+az_status_t az_uvarint_decode(az_bytearray_t bytearray, az_uvarint_t** uvarint)
+{
+    if(uvarint == NULL) /* null guard */
+    {
+        return AZ_ERR_ILLEGAL_PARAM;
+    }
+
+    *uvarint = calloc(1, sizeof(az_uvarint_t));
+
+    if(*uvarint == NULL) /* allocation check */
+    {
+        return AZ_ERR_ALLOC_FAILURE;
+    }
+
+    (*uvarint)->bytes = calloc(bytearray.len, sizeof(uint8_t));
+
+    if((*uvarint)->bytes == NULL) /* allocation check */
+    {
+        return AZ_ERR_ALLOC_FAILURE;
+    }
+
+    az_status_t res = az_bytearray_init(bytearray.len, bytearray.data,
+            (*uvarint)->bytes);
+
+    if(res != AZ_STATUS_OK)
+    {
+        return res;
+    }
+
+    uint8_t* data = bytearray.data; /* alias for readability */
+
+    uintmax_t k = 0;
+    uintmax_t n = 0;
+
+    for(unsigned int i=0;i<bytearray.len;i++)
+    {
+        k = data[i] & 0x7f;
+        n |= k << (i * 7);
+
+        if((data[i] & 0x80) == 0)
+        {
+            (*uvarint)->num = n;
             break;
         }
     }
@@ -95,43 +228,14 @@ az_status_t az_uvarint_encode(uintmax_t num, az_uvarint_t* uvarint)
     return AZ_STATUS_OK;
 }
 
-/**
- * Converts <code>uvarint</code> from an unsigned multiformat variable integer
- * into a native unsigned 64-bit integer.
- *
- * @param uvarint
- *          the <code>az_uvarint_t</code> type to be decoded
- * @param num
- *          reference to a native unsigned 64-bit integer to store the decoded
- *          contents
- * @return <code>az_status_t</code> result type indicating success or failure
- * @throw AZ_ERR_ILLEGAL_PARAM
- *          if <code>num == NULL</code>
- * @see <code>az_status_t</code>
- * @see <code>az_uvarint_encode</code>
- *
- * */
-az_status_t az_uvarint_decode(az_uvarint_t uvarint, uintmax_t* num)
+az_status_t az_uvarint_decode_to_int(az_uvarint_t uvarint, uintmax_t* num)
 {
-    if(num == NULL)
+    if(num == NULL) /* null guard */
     {
         return AZ_ERR_ILLEGAL_PARAM;
     }
 
-    uintmax_t k = 0;
-    uintmax_t n = 0;
-
-    for(unsigned int i=0;i<uvarint.len;i++)
-    {
-        k = uvarint.bytes[i] & 0x7f;
-        n |= k << (i * 7);
-
-        if((uvarint.bytes[i] & 0x80) == 0)
-        {
-            *num = n;
-            break;
-        }
-    }
+    *num = uvarint.num;
 
     return AZ_STATUS_OK;
 }
@@ -162,22 +266,18 @@ az_status_t az_uvarint_equal(az_uvarint_t a, az_uvarint_t b, bool* equal)
         return AZ_ERR_ILLEGAL_PARAM;
     }
 
-    if(a.len != b.len)
+    if(a.num != b.num)
     {
         *equal = false;
         return AZ_STATUS_OK;
     }
 
-    for(uint8_t i=0;i<a.len;i++)
-    {
-        if(a.bytes[i] != b.bytes[i])
-        {
-            *equal = false;
-            return AZ_STATUS_OK;
-        }
-    }
+    az_status_t res = az_bytearray_equal(*a.bytes, *b.bytes, equal);
 
-    *equal = true;
+    if(res != AZ_STATUS_OK)
+    {
+        return res;
+    }
 
     return AZ_STATUS_OK;
 }
