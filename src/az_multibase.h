@@ -6,7 +6,7 @@
  *
  * */
 #ifndef AZ_MULTIBASE_H_
-#define MULTIBASE_H_
+#define AZ_MULTIBASE_H_
 
 #include <stdbool.h>
 
