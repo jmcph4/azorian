@@ -3,7 +3,7 @@
 
 /* semantic versioning information */
 #define AZORIAN_VERSION_MAJOR 0
-#define AZORIAN_VERSION_MINOR 6
+#define AZORIAN_VERSION_MINOR 7
 #define AZORIAN_VERSION_PATCH 0
 
 typedef int __dummy_type_for_ios_compliance;
