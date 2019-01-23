@@ -12,6 +12,8 @@
 #include <stdint.h>
 #include <stdbool.h>
 
+#include "az_status.h"
+
 /**
  * Represents an array of bytes, storing arbitrary binary data.
  *
