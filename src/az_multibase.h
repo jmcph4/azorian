@@ -1,3 +1,10 @@
+/**
+ * @file az_multibase.h
+ *
+ * Contains API of multibase implementation in the form of function
+ * declarations.
+ *
+ * */
 #ifndef AZ_MULTIBASE_H_
 #define MULTIBASE_H_
 
