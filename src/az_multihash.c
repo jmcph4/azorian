@@ -46,7 +46,8 @@ az_status_t az_multihash_encode(az_multicodec_t hash_type,
     multihash->hash_type = hash_type;
 
     /* encode native integer type to unsigned varint */
-    az_status_t res = az_uvarint_init_from_int(digest_size, &multihash->digest_size);
+    az_status_t res = az_uvarint_init_from_int(digest_size,
+            &multihash->digest_size);
 
     if(res != AZ_STATUS_OK)
     {
