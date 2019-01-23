@@ -193,7 +193,7 @@ az_status_t az_uvarint_decode(az_bytearray_t bytearray, az_uvarint_t** uvarint)
         return AZ_ERR_ALLOC_FAILURE;
     }
 
-    (*uvarint)->bytes = calloc(bytearray.len, sizeof(uint8_t));
+    (*uvarint)->bytes = calloc(1, sizeof(az_bytearray_t));
 
     if((*uvarint)->bytes == NULL) /* allocation check */
     {
