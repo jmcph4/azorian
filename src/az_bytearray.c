@@ -121,3 +121,77 @@ az_status_t az_bytearray_equal(az_bytearray_t a, az_bytearray_t b, bool* equal)
     return AZ_STATUS_OK;
 }
 
+/* Operations */
+
+/**
+ * Extracts a closed interval of <code>bytearray</code> into
+ * <code>slice</code>.
+ *
+ * @param bytearray
+ *          the bytearray to take a slice from
+ * @param start
+ *          the index to start slicing at
+ * @param end
+ *          the index to stop slicing at
+ * @param slice
+ *          a double-indirection pointer to an <code>az_bytearray_t</code> type
+ *          to store the sliced bytes
+ * @return an <code>az_status_t</code> type indicating result of operation
+ * @throw AZ_ERR_ILLEGAL_PARAM
+ *          if <code>slice == NULL</code>, <code>start</code> is out of bounds,
+ *          <code>end</code> is out of bounds, the size of the interval
+ *          (i.e. <code>end - start</code>) is the same size as or bigger than
+ *          <code>bytearray</code> itself
+ * @throw AZ_ERR_ALLOC_FAILURE
+ *          if memory allocation fails
+ *
+ * */
+az_status_t az_bytearray_slice(az_bytearray_t bytearray, uintmax_t start,
+        uintmax_t end, az_bytearray_t** slice)
+{
+    if(slice == NULL) /* null guard */
+    {
+        return AZ_ERR_ILLEGAL_PARAM;
+    }
+
+    uintmax_t slice_len = end - start;
+
+    /* bounds check */
+    if(start >= end || start >= bytearray.len || end >= bytearray.len ||
+            slice_len >= bytearray.len)
+    {
+        return AZ_ERR_ILLEGAL_PARAM;
+    }
+
+    /* allocate space for local buffer */
+    uint8_t* slice_bytes = calloc(slice_len, sizeof(uint8_t));
+
+    if(slice_bytes == NULL) /* allocation check */
+    {
+        return AZ_ERR_ALLOC_FAILURE;
+    }
+
+    /* copy required bytes into local buffer */
+    memcpy(slice_bytes, &bytearray.data[start], slice_len);
+
+    *slice = calloc(1, sizeof(az_bytearray_t));
+
+    if(*slice == NULL) /* allocation check */
+    {
+        return AZ_ERR_ALLOC_FAILURE;
+    }
+
+    /* use local buffer to initialise new bytearray type */
+    az_status_t res = az_bytearray_init(slice_len, slice_bytes, *slice);
+
+    if(res != AZ_STATUS_OK)
+    {
+        free(slice_bytes);
+        return res;
+    }
+
+    free(slice_bytes);
+
+    return AZ_STATUS_OK;
+}
+
