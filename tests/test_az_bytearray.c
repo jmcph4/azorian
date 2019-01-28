@@ -102,7 +102,7 @@ void test_az_bytearray_slice_normal(void)
 
     az_status_t res = az_bytearray_slice(bytearray, start, end, &actual_slice);
 
-    bool* slices_equal = false;
+    bool slices_equal = false;
     az_bytearray_equal(*actual_slice, expected_slice, &slices_equal);
 
     TEST_ASSERT_EQUAL_INT(AZ_STATUS_OK, res);
