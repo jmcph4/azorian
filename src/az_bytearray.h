@@ -35,6 +35,7 @@ az_status_t az_bytearray_equal(az_bytearray_t a, az_bytearray_t b, bool* equal);
 /* Operations */
 az_status_t az_bytearray_slice(az_bytearray_t bytearray, uintmax_t start,
         uintmax_t end, az_bytearray_t** slice);
+az_status_t az_bytearray_append(az_bytearray_t back, az_bytearray_t* front);
 
 #endif /* AZ_BYTEARRAY_H_ */
 

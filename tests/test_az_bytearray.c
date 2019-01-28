@@ -109,6 +109,31 @@ void test_az_bytearray_slice_normal(void)
     TEST_ASSERT_TRUE(slices_equal);
 }
 
+void test_az_bytearray_append_normal(void)
+{
+    uint8_t bytes[8] = {0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08};
+
+    az_bytearray_t a;
+    az_bytearray_init(4, bytes, &a);
+
+    az_bytearray_t b;
+    az_bytearray_init(4, &bytes[4], &b);
+
+    az_bytearray_t expected_bytearray;
+    az_bytearray_init(8, bytes, &expected_bytearray);
+
+    az_bytearray_t actual_bytearray;
+    az_bytearray_init(4, bytes, &actual_bytearray);
+
+    az_status_t res = az_bytearray_append(b, &actual_bytearray);
+
+    bool equal = false;
+    az_bytearray_equal(expected_bytearray, actual_bytearray, &equal);
+
+    TEST_ASSERT_EQUAL_INT(AZ_STATUS_OK, res);
+    TEST_ASSERT_TRUE(equal);
+}
+
 int main(void)
 {
     UNITY_BEGIN();
@@ -125,6 +150,9 @@ int main(void)
 
     /* az_bytearray_slice */
     RUN_TEST(test_az_bytearray_slice_normal);
+
+    /* az_bytearray_append */
+    RUN_TEST(test_az_bytearray_append_normal);
 
     return UNITY_END();
 }

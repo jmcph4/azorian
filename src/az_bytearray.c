@@ -195,3 +195,29 @@ az_status_t az_bytearray_slice(az_bytearray_t bytearray, uintmax_t start,
     return AZ_STATUS_OK;
 }
 
+/**
+ * Appends <code>back</code> onto <code>front</code>.
+ *
+ * @param back
+ *          the bytearray to be added onto the end of <code>front</code>
+ * @param front
+ *          the bytearray to be appended to
+ * @return an <code>az_status_t</code> type indicating success of operation
+ * @throw AZ_ERR_ILLEGAL_PARAM
+ *          if <code>front == NULL</code>
+ *
+ * */
+az_status_t az_bytearray_append(az_bytearray_t back, az_bytearray_t* front)
+{
+    if(front == NULL) /* null guard */
+    {
+        return AZ_ERR_ILLEGAL_PARAM;
+    }
+
+    front->data = realloc(front->data, front->len + back.len);
+    memcpy(&front->data[front->len], back.data, back.len);
+    front->len += back.len;
+
+    return AZ_STATUS_OK;
+}
+
