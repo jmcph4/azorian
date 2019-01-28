@@ -173,6 +173,9 @@ az_status_t az_uvarint_encode(az_uvarint_t uvarint, az_bytearray_t** bytearray)
  * @return a <code>az_status_t</code> type indicating result of operation
  * @throw AZ_ERR_ILLEGAL_PARAM
  *          if <code>uvarint == NULL</code>
+ * @throw AZ_ERR_VARINT_TOO_BIG
+ *          if <code>bytearray</code> contains more than
+ *          <code>AZ_UVARINT_MAX_LEN</code> bytes of data
  * @throw AZ_ERR_ALLOC_FAILURE
  *          if memory allocation fails
  * @see <code>az_uvarint_encode</code>
@@ -186,6 +189,11 @@ az_status_t az_uvarint_decode(az_bytearray_t bytearray, az_uvarint_t** uvarint)
         return AZ_ERR_ILLEGAL_PARAM;
     }
 
+    if(bytearray.len > AZ_UVARINT_MAX_LEN) /* bounds check */
+    {
+        return AZ_ERR_VARINT_TOO_BIG;
+    }
+    
     *uvarint = calloc(1, sizeof(az_uvarint_t));
 
     if(*uvarint == NULL) /* allocation check */
@@ -235,6 +243,13 @@ az_status_t az_uvarint_decode_to_int(az_uvarint_t uvarint, uintmax_t* num)
         return AZ_ERR_ILLEGAL_PARAM;
     }
 
+    /* bounds check */
+    if(uvarint.bytes->len > AZ_UVARINT_MAX_LEN ||
+            uvarint.bytes->len > sizeof(uintmax_t))
+    {
+        return AZ_ERR_VARINT_TOO_BIG;
+    }
+    
     *num = uvarint.num;
 
     return AZ_STATUS_OK;
