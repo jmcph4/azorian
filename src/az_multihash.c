@@ -14,58 +14,75 @@
 #include "az_multihash.h"
 
 /**
- * Initialises and populates a <code>az_multihash_t</code> type from the
- * provided fields.
  *
- * @param hash_type
- *          a <code>a_multicodec_t</code> type representing the type of hash
- *          digest being represented
- * @param digest_size
- *          a native integer type representing the number of bytes of digest
- *          data to be expected
- * @param digest
- *          a pointer to an array of bytes representing the digest data to be
- *          encoded
- * @param multihash
- *          a pointer to a <code>az_multihash_t</code> type to store the
- *          encoded multihash values in
- * @return <code>az_status_t</code> result type indicating success or failure
- * @throw AZ_ERR_ILLEGAL_PARAM
- *          if <code>digest == NULL || multihash == NULL</code>
- * @see <code>az_multihash_decode</code>
  *
  * */
-az_status_t az_multihash_encode(az_multicodec_t hash_type,
-        uintmax_t digest_size, uint8_t* digest, az_multihash_t* multihash)
+az_status_t az_multihash_encode(az_multihash_t multihash,
+        az_bytearray_t** bytearray)
 {
-    if(digest == NULL || multihash == NULL) /* null guard */
+    if(bytearray == NULL) /* null guard */
     {
         return AZ_ERR_ILLEGAL_PARAM;
     }
 
-    multihash->hash_type = hash_type;
-
-    /* encode native integer type to unsigned varint */
-    az_status_t res = az_uvarint_init_from_int(digest_size,
-            &multihash->digest_size);
+    az_bytearray_t* type_bytes = NULL;
+    az_status_t res = az_uvarint_encode(multihash.type, &type_bytes);
 
     if(res != AZ_STATUS_OK)
     {
         return res;
     }
 
-    multihash->digest = calloc(digest_size, sizeof(uint8_t));
+    /* encode digest length as a uvarint type */
+    az_uvarint_t size_uvarint;
+    res = az_uvarint_init_from_int(multihash.digest.len, &size_uvarint);
 
-    if(multihash->digest == NULL) /* allocation check */
+    if(res != AZ_STATUS_OK)
+    {
+        return res;
+    }
+
+    /* encode uvarint */
+    az_bytearray_t* size_bytes = NULL;
+    res = az_uvarint_encode(size_uvarint, &size_bytes);
+
+    if(res != AZ_STATUS_OK)
+    {
+        return res;
+    }
+
+    az_bytearray_t* digest_bytes = &multihash.digest;
+
+    /* allocate space in caller's memory for bytearray */
+    *bytearray = calloc(1, sizeof(az_bytearray_t));
+
+    if(*bytearray == NULL) /* allocation check */
     {
         return AZ_ERR_ALLOC_FAILURE;
     }
 
-    /* copy digest bytes into multihash structure */
-    for(uintmax_t i=0;i<digest_size;i++)
+    /* concatenate all three bytearrays */
+    res = az_bytearray_append(*type_bytes, *bytearray);
+
+    if(res != AZ_STATUS_OK)
     {
-        multihash->digest[i] = digest[i];
+        return res;
     }
+
+    res = az_bytearray_append(*size_bytes, *bytearray);
+
+    if(res != AZ_STATUS_OK)
+    {
+        return res;
+    }
+
+    res = az_bytearray_append(*digest_bytes, *bytearray);
+
+    if(res != AZ_STATUS_OK)
+    {
+        return res;
+    }
+
 
     return AZ_STATUS_OK;
 }
@@ -92,38 +109,154 @@ az_status_t az_multihash_encode(az_multicodec_t hash_type,
  * @see <code>az_multihash_encode</code>
  *
  * */
-az_status_t az_multihash_decode(az_multihash_t multihash,
-        az_multicodec_t* hash_type, uintmax_t* digest_size, uint8_t** digest)
+az_status_t az_multihash_decode(az_bytearray_t bytearray,
+        az_multihash_t** multihash)
 {
-    /* null guard */
-    if(hash_type == NULL || digest_size == NULL || digest == NULL)
+    if(multihash == NULL) /* null guard */
     {
         return AZ_ERR_ILLEGAL_PARAM;
     }
 
-    *hash_type = multihash.hash_type;
-   
-    /* decode digest size from unsigned varint into native integer */ 
-    az_status_t res = az_uvarint_decode_to_int(multihash.digest_size,
-            digest_size);
+    if(bytearray.len < 3) /* bounds check */
+    {
+        return AZ_ERR_ILLEGAL_PARAM;
+    }
+
+    size_t type_end = 0;
+
+    /* determine where first uvarint ends */
+    for(size_t i=0;i<bytearray.len;i++)
+    {
+        if(i > AZ_UVARINT_MAX_LEN && bytearray.data[i] >= 255)
+        {
+            return AZ_ERR_ILLEGAL_PARAM;
+        }
+
+        /* we've reached the end of our first uvarint */
+        if(bytearray.data[i] < 255)
+        {
+            type_end = i;
+            break;
+        }
+    }
+
+    type_end++;
+
+    /* take slice of main bytearray to represent uvarint */
+    az_bytearray_t* type_slice = NULL;
+    az_status_t res = az_bytearray_slice(bytearray, 0, type_end, &type_slice);
 
     if(res != AZ_STATUS_OK)
     {
         return res;
     }
 
-    *digest = calloc(*digest_size, sizeof(uint8_t));
+    /* interpret the type bytes as a multicodec */
+    az_multicodec_t* hash_type = NULL;
+    res = az_uvarint_decode(*type_slice, &hash_type);
 
-    if(*digest == NULL) /* allocation check */
+    if(res != AZ_STATUS_OK)
+    {
+        return res;
+    }
+
+    size_t size_end = 0;
+
+    /* find where second uvarint (digest size) ends */
+    for(size_t i=type_end;i<bytearray.len;i++)
+    {
+        if(i > AZ_UVARINT_MAX_LEN && bytearray.data[i] >= 255)
+        {
+            return AZ_ERR_ILLEGAL_PARAM;
+        }
+
+        if(bytearray.data[i] < 255)
+        {
+            size_end = i;
+            break;
+        }
+    }
+
+    size_end++;
+
+    /* extract bytes for the hash size */
+    az_bytearray_t* size_slice = NULL;
+    res = az_bytearray_slice(bytearray, type_end, size_end, &size_slice);
+
+    if(res != AZ_STATUS_OK)
+    {
+        return res;
+    }
+
+    /* decode size slice as a uvarint */
+    az_uvarint_t* hash_size = NULL;
+    res = az_uvarint_decode(*size_slice, &hash_size);
+
+    if(res != AZ_STATUS_OK)
+    {
+        return res;
+    }
+
+    /* get number of bytes in digest as native integer type */
+    uintmax_t digest_size = 0;
+    res = az_uvarint_decode_to_int(*hash_size, &digest_size);
+
+    if(res != AZ_STATUS_OK)
+    {
+        return res;
+    }
+
+    /* extract digest bytes */
+    az_bytearray_t* digest_slice = NULL;
+    res = az_bytearray_slice(bytearray, size_end, bytearray.len,
+            &digest_slice);
+
+    if(res != AZ_STATUS_OK)
+    {
+        return res;
+    }
+
+    /* allocate space in caller's memory for multihash type */
+    *multihash = calloc(1, sizeof(az_multihash_t));
+
+    if(*multihash == NULL) /* allocation check */
     {
         return AZ_ERR_ALLOC_FAILURE;
     }
 
-    /* copy digest bytes back out into caller's buffer */
-    for(uintmax_t i=0;i<*digest_size;i++)
+    (*multihash)->type = *hash_type;
+    (*multihash)->digest = *digest_slice;
+
+    return AZ_STATUS_OK;
+}
+
+/* Equality */
+
+/***/
+az_status_t az_multihash_equal(az_multihash_t a, az_multihash_t b, bool* equal)
+{
+    if(equal == NULL) /* null guard */
     {
-        (*digest)[i] = multihash.digest[i];
+        return AZ_ERR_ILLEGAL_PARAM;
     }
+
+    bool types_equal = false;
+    az_status_t res = az_uvarint_equal(a.type, b.type, &types_equal);
+
+    if(res != AZ_STATUS_OK)
+    {
+        return res;
+    }
+
+    bool digests_equal = false;
+    res = az_bytearray_equal(a.digest, b.digest, &digests_equal);
+
+    if(res != AZ_STATUS_OK)
+    {
+        return res;
+    }
+
+    *equal = types_equal && digests_equal;
 
     return AZ_STATUS_OK;
 }
