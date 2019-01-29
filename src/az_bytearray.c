@@ -157,7 +157,7 @@ az_status_t az_bytearray_slice(az_bytearray_t bytearray, uintmax_t start,
     uintmax_t slice_len = end - start;
 
     /* bounds check */
-    if(start >= end || start >= bytearray.len || end >= bytearray.len ||
+    if(start >= end || start >= bytearray.len || end > bytearray.len ||
             slice_len >= bytearray.len)
     {
         return AZ_ERR_ILLEGAL_PARAM;
